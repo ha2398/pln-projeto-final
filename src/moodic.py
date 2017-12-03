@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Moodic
@@ -6,7 +6,7 @@ Moodic
 '''
 
 import argparse
-import lastplayed as lp
+import mylast as ml
 import lyricwikia as lw
 import pylast
 import sys
@@ -32,9 +32,12 @@ def add_args():
 
 def main():
 	args = add_args()
-	lp.get_recent_tracks(args.USERNAME, args.NSONGS)
+	tracks = ml.get_recent_tracks(args.USERNAME, args.NSONGS)
 
-	lyrics = lw.get_lyrics('The Smiths', 'Stretch Out & Wait')
+	artist, song = str(tracks[0].track).split(' - ')
+	print(artist, song)
+
+	lyrics = lw.get_lyrics(artist, song)
 	print(lyrics)
 
 	return
