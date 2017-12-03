@@ -1,0 +1,10 @@
+1. Define goal to achieve (relate it to NLP as well).
+2. Why is it important?
+3. Show related work that supports what you're doing.
+4. Identify data to collect / granularity.
+5. Identify tools to collect data.
+6. Code, code, code!
+7. Provide a working example.
+8. Show statistics, plots!
+9. Suggest future work.
+10. Create presentation.
