@@ -81,12 +81,14 @@ plataformas.
 
 \section{Modelagem}
 
+% Coleta de dados
 O primeiro passo para resolver abordar esse problema é determinar como coletar os dados necessários para traçar um panorama sobre os hábitos
 musicais de um usuário. Para isso, a plataforma Last.fm foi escolhida,
 não só pela quantidade massiva de dados que acumula, mas também pelo
 fato de que todos os seus dados são exibidos publicamente na mesma,
 como definido nos termos de contrato do serviço \cite{Lastfmterms}.
 
+% Parâmetros
 Nessa etapa é importante definir a quantidade $ n $ para determinar
  as últimas $ n $ músicas que um usuário ouviu. Essa não é uma escolha
  muito simples, uma vez que, para valores muito altos de $ n $, perdemos
@@ -96,6 +98,7 @@ Nessa etapa é importante definir a quantidade $ n $ para determinar
  suficientemente alto para reunir a maior quantidade possível de músicas
  que refletem um mesmo estado de sentimento/humor do usuário.
 
+% Letras
 Em seguida, é preciso reunir os atributos das canções que servirão de 
 indicadores para as emoções das mesmas e, consequentemente, dos usuários.
 O primeiro atributo a ser considerado são as letras das músicas. Para 
@@ -103,6 +106,17 @@ facilitar a implementação do trabalho, só foram levadas em consideração
 as músicas cujo idioma é o inglês (uma vez que já existe uma grande
 quantidade de ferramentas existentes para trabalhar com esse idioma).
 
+De posse das letras de uma canção, podemos tentar quantificar a negatividade
+das palavras. Para isso, podemos usar uma base de dados que já contenha
+emoções associadas a cada palavra. Para esse trabalho, foi escolhida
+a base \textit{NRC Word-Emotion Association Lexicon}
+\cite{Mohammad13}. Além disso, é necessário realizar um pré-processamento
+no texto, removendo as flexões das palavras e excluindo aquelas cuja
+classe gramatical não seja forte indicador de sentimento ou emoção, i.e.,
+palavras como 'hi', 'him', 'there', etc. Com isso, conseguimos quantificar
+a porcentagem de palavras negativas nas letras de uma música.
+
+% Músicas instrumentais
 Naturalmente, canções instrumentais também devem ser identificadas
 e tratadas de forma especial, de modo que também possam ser extraídas 
 informações importantes das mesmas.

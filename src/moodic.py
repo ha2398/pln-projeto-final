@@ -6,22 +6,32 @@ Moodic
 '''
 
 import argparse
-import mylast as ml
 import lyricwikia as lw
+import mylast as ml
 import pylast
+import spotipy
 import sys
 
 from langdetect import detect
 from nltk import WordNetLemmatizer
 from nltk.corpus import stopwords
+from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
+from spotipy.oauth2 import SpotifyClientCredentials
 
 API_KEY = 'c9a7f0509e1be9ea5e8b1fce88bd1486'
 API_SECRET = '93de978ac877b9c01079ce0cd32ae4ec'
 
 
-negative_emotions = ['anger', 'disgust', 'fear', 'negative', 'sadness']
+negative_emotions = [
+	'anger', 'disgust', 'fear', 'negative', 'sadness'
+]
+
+unwanted_pos_tags = [
+	'CC', 'CD', 'DT', 'IN', 'PRP', 'TO', 'NNP', 'PRP$', 'WP', 'WP$', 'EX',
+	'LS', 'POS', 'UH', 'WDT', 'WP', 'WRB'
+]
 
 
 ###############################################################################
@@ -68,9 +78,13 @@ def load_emolex(emolex_filename):
 
 def filter_english(song_lyrics):
 	print('[-] Removing non-english lyrics')
-	for song in tqdm(song_lyrics):
-		if detect(song_lyrics[song]) != 'en':
-			del song_lyrics[song]
+	english_lyrics = {}
+	for song in song_lyrics:
+		language = detect(song_lyrics[song])
+		if language == 'en':
+			english_lyrics[song] = song_lyrics[song]
+
+	return english_lyrics
 
 
 def download_lyrics(tracks):
@@ -91,22 +105,26 @@ def download_lyrics(tracks):
 	return song_lyrics
 
 
-def quantify_negativeness(lyrics, emolex):
+def quantify_negativity(lyrics, emolex):
 	wnl = WordNetLemmatizer()
 
 	negative_pct = {}
 	stop_words = set(stopwords.words('english'))
 
+	print('[+] Calculating lyrics negativity')
 	for song in lyrics:
-		tokens = [t for t in word_tokenize(lyrics[song]) if t not in stop_words]
+		tokens = [t for t in word_tokenize(lyrics[song]) \
+			if t not in stop_words and t.isalpha()]
 		tokens = set([wnl.lemmatize(t) for t in tokens])
-		print(song, tokens)
+		tagged = pos_tag(tokens)
+		tokens = [x[0] for x in tagged if x[1] not in unwanted_pos_tags]
+
 		total_tokens = len(tokens)
 		negative_tokens = 0
 
 		for token in tokens:
 			for emotion in negative_emotions:
-				if token in emolex[emotion]:
+				if token.lower() in emolex[emotion]:
 					negative_tokens += 1
 					break
 
@@ -118,20 +136,39 @@ def quantify_negativeness(lyrics, emolex):
 def main():
 	args = add_args()
 
+	# Fetch user lastfm data.
 	print('[+] Fetching user {} data'.format(args.USERNAME))
 	tracks = ml.get_recent_tracks(args.USERNAME, args.NSONGS)
 
+	# Downlaod lyrics
 	song_lyrics = download_lyrics(tracks)
 	print('[+] Total lyrics downloaded: {}'.format(len(song_lyrics)))
 
-	filter_english(song_lyrics)
+	# Remove non english songs
+	song_lyrics = filter_english(song_lyrics)
 	print('[+] Total english lyrics found: {}'.format(len(song_lyrics)))
 
+	# Load Word-emotion lexicon and calculate negativity
 	emolex = load_emolex(args.LEXICON)
-	negative_pct = quantify_negativeness(song_lyrics, emolex)
-	print(negative_pct)
+	negative_pct = quantify_negativity(song_lyrics, emolex)
+	
+	# Get Spotify info
+	ccm = SpotifyClientCredentials()
+	sp = spotipy.Spotify(client_credentials_manager=ccm)
+	result = sp.search('The Smiths - Asleep')
 
-	return
+	print('[+] Collecting tracks info')
+	track_info = {}
+	for song in song_lyrics:
+		uri = sp.search(song)['tracks']['items'][0]['uri']
+		features = sp.audio_features(uri)[0]
+		duration_ms = features['duration_ms']
+		valence = features['valence']
 
+		track_info[song] = {'uri': uri, 'length': duration_ms,
+			'valence': valence, 'lyric_neg': negative_pct[song]}
+
+	for track in track_info:
+		print(track, track_info[track])
 
 main()
