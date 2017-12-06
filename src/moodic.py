@@ -19,6 +19,7 @@ from nltk.tag import pos_tag
 from nltk.tokenize import word_tokenize
 from tqdm import tqdm
 from spotipy.oauth2 import SpotifyClientCredentials
+from subprocess import call
 
 API_KEY = 'c9a7f0509e1be9ea5e8b1fce88bd1486'
 API_SECRET = '93de978ac877b9c01079ce0cd32ae4ec'
@@ -33,6 +34,9 @@ unwanted_pos_tags = [
 	'LS', 'POS', 'UH', 'WDT', 'WP', 'WRB'
 ]
 
+
+ccm = SpotifyClientCredentials()
+sp = spotipy.Spotify(client_credentials_manager=ccm)
 
 ###############################################################################
 
@@ -49,6 +53,9 @@ def add_args():
 
 	parser.add_argument('-n', dest='NSONGS', default=20, type=int,
 		help='Number of last played songs to collect')
+
+	parser.add_argument('--p', help='Enable plot generation',
+		action='store_true')
 
 	return parser.parse_args()
 
@@ -93,12 +100,14 @@ def download_lyrics(tracks):
 	for i in tqdm(range(len(tracks))):
 		temp = str(tracks[i].track).split(' - ')
 		artist, song = temp[0], temp[1]
+		title = artist + ' - ' + song
 
 		try:
-			lyrics = lw.get_lyrics(artist, song)
+			if title not in song_lyrics:
+				lyrics = lw.get_lyrics(artist, song)
 
-			if len(lyrics.split()) != 1: # Non-instrumental
-				song_lyrics[' - '.join([artist, song])] = lyrics
+				if len(lyrics.split()) != 1: # Non-instrumental
+					song_lyrics[title] = lyrics
 		except:
 			pass
 
@@ -119,7 +128,8 @@ def quantify_negativity(lyrics, emolex):
 		tagged = pos_tag(tokens)
 		tokens = [x[0] for x in tagged if x[1] not in unwanted_pos_tags]
 
-		total_tokens = len(tokens)
+		len_tokens = len(tokens)
+		total_tokens = len_tokens if len_tokens != 0 else 1 
 		negative_tokens = 0
 
 		for token in tokens:
@@ -133,12 +143,94 @@ def quantify_negativity(lyrics, emolex):
 	return negative_pct
 
 
+def plot(songs, track_info):
+	plot_file = open('plotcmd.gp', 'w')
+	data_file = open('data.dat', 'w')
+
+	# GNUPlot commands
+	plot_file.write('set terminal png size 1200, 900\n')
+	plot_file.write('set output \'time_nei.png\'\n')
+	plot_file.write('set title \'Tempo (canções) x Índice de Negatividade\'\n')
+	plot_file.write('set xlabel \'Tempo (canções)\'\n')
+	plot_file.write('set ylabel \'Índice de Negatividade\'\n')
+
+	# Data file
+	i = 1
+	for (artist, song) in reversed(songs):
+		title = artist + ' - ' + song
+		NeI = track_info[title]['nei']
+
+		if NeI != None:
+			data_file.write(str(i) + '\t' + str(NeI) + '\n')
+			i += 1
+
+	data_file.close()
+
+	plot_file.write('plot \'data.dat\' u 1:2 notitle smooth bezier')
+	plot_file.close()
+	call(['gnuplot', 'plotcmd.gp'])
+
+
+def get_spotify_info(songs, song_lyrics, negative_pct):
+	print('[+] Collecting tracks info')
+	track_info = {}
+	for (artist, song) in songs:
+		title = artist + ' - ' + song
+		print('\t' + title)
+
+		if title in track_info:
+			continue
+
+		search_result = sp.search(title)['tracks']['items']
+
+		if len(search_result) != 0:
+			uri = search_result[0]['uri']
+			features = sp.audio_features(uri)[0]
+
+			if features:
+				duration_ms = features['duration_ms']
+				valence = features['valence']
+			else:
+				valence = None
+				duration_ms = 1
+		else:
+			valence = None
+			duration_ms = 1
+
+		if title in song_lyrics:
+				lyric_weight = len([x for x in song_lyrics[title].split() \
+					if x.isalpha()]) / (duration_ms / 1000)
+
+				lyric_neg = negative_pct[title]
+		else:
+			lyric_weight = None
+			lyric_neg = None
+
+		if valence == None or lyric_neg == None:
+			NeI = None
+		else:
+			NeI = ((1 - valence) + (lyric_neg * lyric_weight)) / 2
+
+		track_info[title] = {
+			'lyric_weight': lyric_weight, 'valence': valence,
+			'lyric_neg': lyric_neg, 'nei': NeI
+		}
+
+	return track_info
+
+
 def main():
 	args = add_args()
 
 	# Fetch user lastfm data.
 	print('[+] Fetching user {} data'.format(args.USERNAME))
-	tracks = ml.get_recent_tracks(args.USERNAME, args.NSONGS)
+
+	if args.NSONGS != 0:
+		tracks = ml.get_recent_tracks(args.USERNAME, args.NSONGS)
+	else:
+		tracks = ml.get_recent_tracks(args.USERNAME, None)
+
+	songs = [tuple(str(t.track).split(' - ')[0:2]) for t in tracks]
 
 	# Downlaod lyrics
 	song_lyrics = download_lyrics(tracks)
@@ -153,22 +245,13 @@ def main():
 	negative_pct = quantify_negativity(song_lyrics, emolex)
 	
 	# Get Spotify info
-	ccm = SpotifyClientCredentials()
-	sp = spotipy.Spotify(client_credentials_manager=ccm)
-	result = sp.search('The Smiths - Asleep')
+	track_info = get_spotify_info(songs, song_lyrics, negative_pct)
 
-	print('[+] Collecting tracks info')
-	track_info = {}
-	for song in song_lyrics:
-		uri = sp.search(song)['tracks']['items'][0]['uri']
-		features = sp.audio_features(uri)[0]
-		duration_ms = features['duration_ms']
-		valence = features['valence']
+	for (artist, song) in songs:
+		title = artist + ' - ' + song
+		print(title, track_info[title]['nei'])
 
-		track_info[song] = {'uri': uri, 'length': duration_ms,
-			'valence': valence, 'lyric_neg': negative_pct[song]}
-
-	for track in track_info:
-		print(track, track_info[track])
+	if args.p:
+		plot(songs, track_info)
 
 main()

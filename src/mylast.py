@@ -29,7 +29,7 @@ TRACK_SEPARATOR = ' - '
 
 def get_recent_tracks(username, number):
     recent_tracks = lastfm_network.get_user(
-        username).get_recent_tracks(limit=number+1)
+        username).get_recent_tracks(limit=None)
     for i, track in enumerate(recent_tracks):
         printable = track.playback_date + ' - ' + str(track.track)
         print(str(i+1) + ' ' + printable)

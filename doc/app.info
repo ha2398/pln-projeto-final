@@ -1,7 +1,11 @@
 Application name	Moodic
-API key	c9a7f0509e1be9ea5e8b1fce88bd1486
-Shared secret	93de978ac877b9c01079ce0cd32ae4ec
+Last.fm	API key	c9a7f0509e1be9ea5e8b1fce88bd1486
+Last.fm	Shared secret	93de978ac877b9c01079ce0cd32ae4ec
 Registered to	sousah
+
+Spotify Client ID: 	20bf555cc63e4203922ab0de09920f47
+Spotify Client Secret: 	100eace584804351a59ca8f989c314cf
+Spotify Redirect URI:	https://homepages.dcc.ufmg.br/~hugosousa/
 
 Sources:
 https://github.com/pylast/pylast
