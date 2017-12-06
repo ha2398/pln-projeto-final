@@ -122,7 +122,7 @@ def quantify_negativity(lyrics, emolex):
 
 	print('[+] Calculating lyrics negativity')
 	for song in lyrics:
-		tokens = [t for t in word_tokenize(lyrics[song]) \
+		tokens = [t.lower() for t in word_tokenize(lyrics[song]) \
 			if t not in stop_words and t.isalpha()]
 		tokens = set([wnl.lemmatize(t) for t in tokens])
 		tagged = pos_tag(tokens)
@@ -183,7 +183,9 @@ def get_spotify_info(songs, song_lyrics, negative_pct):
 
 		search_result = sp.search(title)['tracks']['items']
 
-		if len(search_result) != 0:
+		# Song found in Spotify database
+		if search_result != None and len(search_result) != 0:
+			print('Song found in Spotify database')
 			uri = search_result[0]['uri']
 			features = sp.audio_features(uri)[0]
 
@@ -192,23 +194,35 @@ def get_spotify_info(songs, song_lyrics, negative_pct):
 				valence = features['valence']
 			else:
 				valence = None
-				duration_ms = 1
-		else:
+				duration_ms = None
+		else: # Song not found in Spotify database
+			print('Song not found in Spotify database')
 			valence = None
-			duration_ms = 1
+			duration_ms = None
 
-		if title in song_lyrics:
-				lyric_weight = len([x for x in song_lyrics[title].split() \
-					if x.isalpha()]) / (duration_ms / 1000)
+		# Lyrics were found for the song
+		if title in song_lyrics and duration_ms != None:
+			print('Lyrics were found for the song')
+			lyric_weight = len([x for x in song_lyrics[title].split() \
+				if x.isalpha()]) / (duration_ms / 1000)
 
-				lyric_neg = negative_pct[title]
-		else:
+			lyric_neg = negative_pct[title]
+		else: # Lyrics were not found for the song
+			print('Lyrics were not found for the song')
 			lyric_weight = None
 			lyric_neg = None
 
-		if valence == None or lyric_neg == None:
+		if valence == None and lyric_neg != None: # Lyrics but no Spotify info
+			print('Lyrics but no Spotify info')
+			NeI = (lyric_neg * lyric_weight)
+		elif valence != None and lyric_neg == None: # Spotify info but no lyrics
+			print('Spotify info but no lyrics')
+			NeI = 1 - valence
+		elif valence == None and lyric_neg == None: # No info at all
+			print('No info at all')
 			NeI = None
 		else:
+			print('Calculating NeI')
 			NeI = ((1 - valence) + (lyric_neg * lyric_weight)) / 2
 
 		track_info[title] = {
@@ -247,11 +261,24 @@ def main():
 	# Get Spotify info
 	track_info = get_spotify_info(songs, song_lyrics, negative_pct)
 
+	mean = 0
+	count = 0
 	for (artist, song) in songs:
 		title = artist + ' - ' + song
-		print(title, track_info[title]['nei'])
+		nei = track_info[title]['nei']
 
-	if args.p:
+		if nei != None:
+			mean += nei
+			count += 1
+
+	if count != 0:
+		mean /= count
+		print('[+] Average user NeI:', mean)
+	else:
+		print('[Error] Not enough data to display')
+
+	if args.p and count != 0:
 		plot(songs, track_info)
+
 
 main()
