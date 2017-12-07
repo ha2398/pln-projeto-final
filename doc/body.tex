@@ -153,6 +153,11 @@ Spotify, essa medida é definida como:
 	negativas (e.g. tristes, deprimentes, irritadas). - (tradução livre)
 \end{quote}
 
+A medida de valência é obtida através de um mecanismo de busca chamado
+"The Truffle Pig", implementado pela empresa The Echo Nest, adquirida
+pelo Spotify em 2014 \cite{spotifyecho} \cite{theechonest}
+\cite{theechonestpage}.
+
 Dessa forma, temos três medidas para construir o índice de negatividade de
 uma canção, seu peso lírico, a negatividade lírica e a valência. Essas três
 medidas serão usadas para definir o índice de negatividade de cada canção
@@ -198,6 +203,12 @@ o programador consegue obter os dados de um artista, canções, álbuns, imagens
 etc. O interesse para o trabalho em questão, entretanto, é obter algumas
 informações interessantes sobre as faixas ouvidas por um usuário, como
 duração (necessária para o cálculo de peso lírico) e valência.
+
+\begin{figure}
+\includegraphics[height=2.5in, width=3.5in]{data.png}
+\caption{Coleta dos dados necessários.}
+\label{fig:data}
+\end{figure}
 
 Também é importante mencionar a biblioteca \textit{langdetect}
 \cite{langdetect}, que foi responsável por detectar a linguagem de cada uma
@@ -424,7 +435,7 @@ de maneira defasada, como mostrado na Tabela \ref{tab:nei}.
 		\textbf{Valência e Duração} & \textbf{Letras} & \textbf{NeI} \\
 		\hline
 		Não & Não & Não calculado \\ \hline
-		Não & Sim & $ (ln(s) * lw(s)) $ \\ \hline
+		Não & Sim & $ ln(s) $ \\ \hline
 		Sim & Não & $ (1 - val(s)) $ \\ \hline
 		Sim & Sim & $ \frac{((1 - val(s)) + (lw(s) * ln(s)))}{2} $ \\ \hline 
 	\end{tabular}
@@ -554,6 +565,11 @@ transtornos de humor.
 	soa um álbum ou o quão negativo, em termos de humor, é um artista
 	e sua música para os seus ouvintes.
 
+	\item \textbf{Tags:} Tendo em vista que a plataforma Last.fm
+	permite a seus usuários adicionar tags às músicas que escutam,
+	pode ser uma alternativa coletar essas tags e fazer uso das mesmas
+	obtendo informações de humor fornecidas pelos próprios usuários.
+
 	\item \textbf{Peso para emoções diferentes:} Como mencionado na
 	Seção \ref{sec:mod}, uma vez que uma mesma palavra pode ativar
 	emoções diferentes, seria interessante levar isso em consideração
@@ -561,6 +577,22 @@ transtornos de humor.
 	no lexicon. Dessa forma, após uma análise das emoções disponíveis,
 	cada palavra contribuiria com um valor que é resultado da soma
 	dos pesos de cada emoção que a mesma ativa.
+
+	\item \textbf{Inclusão de emoções mais específicas:} Para o
+	desenvolvimento da ferramenta Moodic, apenas foi levado em 
+	consideração o aspecto de polaridade das emoções, isto é,
+	se determinada emoção é negativa ou positiva (ou neutra).
+	Para obter resultados mais precisos e detalhados, seria
+	interessante ter informações mais detalhas para mais
+	emoções do espectro de emoções humanas (como mostrado
+	na Figura \ref{fig:plutchik}. Para isso seria 
+	necessário construir um lexicon maior, com maiores informações.
+
+	\begin{figure}
+	\includegraphics[height=4in, width=3.5in]{plutchik.png}
+	\caption{Espectro de emoções de Plutchik.}
+	\label{fig:plutchik}
+	\end{figure}
 
 	\item \textbf{Coleta massiva de dados:} Uma medida interessante
 	para obter-se parâmetros de comparação entre usuários seria coletar

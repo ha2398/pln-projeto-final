@@ -209,7 +209,7 @@ def get_spotify_info(songs, song_lyrics, negative_pct):
 			lyric_neg = None
 
 		if valence == None and lyric_neg != None: # Lyrics but no Spotify info
-			NeI = (lyric_neg * lyric_weight)
+			NeI = lyric_neg
 		elif valence != None and lyric_neg == None: # Spotify info but no lyrics
 			NeI = 1 - valence
 		elif valence == None and lyric_neg == None: # No info at all
