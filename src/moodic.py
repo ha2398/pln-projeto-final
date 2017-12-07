@@ -185,7 +185,6 @@ def get_spotify_info(songs, song_lyrics, negative_pct):
 
 		# Song found in Spotify database
 		if search_result != None and len(search_result) != 0:
-			print('Song found in Spotify database')
 			uri = search_result[0]['uri']
 			features = sp.audio_features(uri)[0]
 
@@ -196,33 +195,26 @@ def get_spotify_info(songs, song_lyrics, negative_pct):
 				valence = None
 				duration_ms = None
 		else: # Song not found in Spotify database
-			print('Song not found in Spotify database')
 			valence = None
 			duration_ms = None
 
 		# Lyrics were found for the song
 		if title in song_lyrics and duration_ms != None:
-			print('Lyrics were found for the song')
 			lyric_weight = len([x for x in song_lyrics[title].split() \
 				if x.isalpha()]) / (duration_ms / 1000)
 
 			lyric_neg = negative_pct[title]
 		else: # Lyrics were not found for the song
-			print('Lyrics were not found for the song')
 			lyric_weight = None
 			lyric_neg = None
 
 		if valence == None and lyric_neg != None: # Lyrics but no Spotify info
-			print('Lyrics but no Spotify info')
 			NeI = (lyric_neg * lyric_weight)
 		elif valence != None and lyric_neg == None: # Spotify info but no lyrics
-			print('Spotify info but no lyrics')
 			NeI = 1 - valence
 		elif valence == None and lyric_neg == None: # No info at all
-			print('No info at all')
 			NeI = None
 		else:
-			print('Calculating NeI')
 			NeI = ((1 - valence) + (lyric_neg * lyric_weight)) / 2
 
 		track_info[title] = {

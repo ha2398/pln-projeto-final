@@ -311,7 +311,7 @@ encontrada pelo programa. 1: A string que se refere à letra de uma canção
 Todas as letras dos tokens são transformadas para minúsculas. 
 5: Remove-se as flexões dos tokens. Observamos que o token "i" volta 
 a apresentar letras maiúsculas. Isso se deve ao fato de que a palavra
-"I" em inglês sempre tem grafia em maiúsculo.}
+"I" inglês sempre tem grafia em maiúsculo.}
 \label{fig:music-mood}
 \end{figure}
 
@@ -372,7 +372,7 @@ o peso lírico $ lw $ de uma canção, isto é, a quantidade de palavras por
  segundo de música, como:
 
 \begin{displaymath}
-	lw = \frac{nwords}{(length / 1000)}
+	lw = \frac{nwords}{length / 1000}
 \end{displaymath}
 
 \subsection{Índice de negatividade}
@@ -412,27 +412,7 @@ $ NeI(s) $ é definido como:
 	NeI(s) = \frac{((1 - val(s)) + (lw(s) * ln(s)))}{2}
 \end{displaymath}
 
-É importante ressaltar alguns casos especiais que acontecem quando
-um ou mais das medidas necessárias para se calcular o $ NeI $ não
-podem ser coletadas. Nesse caso, o valor do $ NeI $ é calculado
-de maneira defasada, como mostrado na Tabela \ref{tab:nei}.
-
-\begin{table}[h]
-	\centering
-	\begin{tabular}{|c|c|c|}
-		\hline
-		\textbf{Valência e Duração} & \textbf{Letras} & \textbf{NeI} \\
-		\hline
-		Não & Não & Não calculado \\ \hline
-		Não & Sim & $ (ln(s) * lw(s)) $ \\ \hline
-		Sim & Não & $ (1 - val(s)) $ \\ \hline
-		Sim & Sim & $ \frac{((1 - val(s)) + (lw(s) * ln(s)))}{2} $ \\ \hline 
-	\end{tabular}
-	\caption{\label{tab:nei} Cálculo do $ NeI $ de acordo com os dados
-	coletados com sucesso.}
-\end{table}
-
-\section{Estudos de caso}
+\section{Estudo de caso}
 
 Para ilustrar o funcionamento da ferramenta desenvolvida, essa seção
 apresenta o estudo de caso para um usuário da plataforma Last.fm.
@@ -470,9 +450,9 @@ Onde os argumentos da chamada são:
 	\end{itemize}
 \end{itemize}
 
-\subsection{Exemplos}
+\subsection{Exemplo}
 
-Para o primeiro exemplo dessa seção, o usuário a ser analisado é o de
+Para o exemplo dessa seção, o usuário a ser analisado é o de
 apelido "sousah" na plataforma Last.fm. O número de canções coletadas
 foi $ 200 $.
 
@@ -489,43 +469,6 @@ com uma descida notável no índice. Além disso, podemos perceber que,
 até o momento da execução, o índice encontrado indica que o humor
 do usuário sofreu mudanças positivas claras, uma vez que o índice
 cai notavelmente.
-
-A fim de estabelecer comparações interessantes, o próximo exemplo
-tem como ponto de partida algumas considerações de cunho menos
-científico. Pensando um pouco em artistas cuja fama é de produzir
-canções mais tristes ou mais felizes, podemos pensar no cantor
-Elliott Smith como exemplar do primeiro caso e o cantor Justin
-Bieber como exemplar do segundo. É interessante então pensar
-que os índices de negatividade de um fã do primeiro sejam mais
-altos que os de um fã do segundo. Para verificar se isso acontece
-na prática, utilizamos a funcionalidade da plataforma Last.fm
-que exibe os principais ouvintes de determinado artista. Logo,
-selecionamos o principal ouvinte de cada um dos dois artistas
-mencionados e executamos Moodic para ambos. Para o fã de Elliott
-Smith, foi obtido um $ NeI $ médio de $ 0.5215 $, enquanto o fã
-de Justin Bieber obteve um $ NeI $ médio de $ 0.3834 $. Para
-os dois usuários, foram coletadas as últimas 1000 canções escutadas.
-Os gráficos de canções x NeI para ambos são mostrados nas Figuras
-\ref{fig:theSimius_1000} e \ref{fig:sam_alle_1000}.
-
-\begin{figure}
-\includegraphics[height=3in, width=3.5in]{theSimius_1000.png}
-\caption{Dados gerados através do principal ouvinte de Elliott Smith na
- Last.fm, considerando as últimas 1000 músicas que este ouviu no momento da execução do programa.}
-\label{fig:theSimius_1000}
-\end{figure}
-
-\begin{figure}
-\includegraphics[height=3in, width=3.5in]{sam_alle_1000.png}
-\caption{Dados gerados através do principal ouvinte de Justin Bieber na
- Last.fm, considerando as últimas 1000 músicas que este ouviu no momento da execução do programa.}
-\label{fig:sam_alle_1000}
-\end{figure}
-
-Podemos observar que o fã de Elliott Smith atinge em um determinado
-momento valores de $ NeI $ próximos a $ 0.9 $, e que os seus níveis
-são muito mais instáveis que o outro usuário que, por sua vez, atinge
-nos momentos mais negativos, $ NeI $ próximo a $ 0.5 $.
 
 \section{Conclusão}
 
@@ -549,7 +492,7 @@ transtornos de humor.
 	\item \textbf{Granularidade:} No trabalho em questão, o centro de 
 	todas as análises foi um usuário, isto é, um ouvinte nas plataformas
 	digitais. Da mesma forma que calculamos o índice de negatividade para
-	músicas e o estendemos para o usuário que as escuta, podemos fazer
+	músicas e o extendemos para o usuário que as escuta, podemos fazer
 	isso para álbuns e artistas. Determinando assim o quão triste
 	soa um álbum ou o quão negativo, em termos de humor, é um artista
 	e sua música para os seus ouvintes.
